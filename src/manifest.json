@@ -1,0 +1,14 @@
+{
+  "name": "Color Contrast Matrix",
+  "id": "1419267294899611928",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "index.html",
+  "permissions": ["teamlibrary"],
+  "networkAccess": { "allowedDomains": ["none"] },
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [
+    "figma" 
+  ]
+}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <!-- Styles  -->
+    <link rel="stylesheet" href="./tmp/figma-plugin-ds.css"><!-- Figma Plugin DS Styles -->
+    <link rel="stylesheet" href="./tmp/styles.css"> <!-- Your Styles -->
+</head>
+
+<body>
+    <main>
+        <section class="main m-xxsmall">
+            <section>
+
+                <!-- <div class="section-title">Select Collection Group(s)</div> -->
+                <div class="switch">
+                    <input class="switch__toggle" type="checkbox" id="uniqueId">
+                    <label class="switch__label" for="uniqueId">Distinct rows and columns</label>
+                </div>
+
+                <div class="group-selection">
+                    <div class="group-selection__column" id="background-groups-column">
+                        <label class="label group-selection__label" data-role="background-label">Background &amp;
+                            Text</label>
+                        <div id="groups" class="group-selection__list"></div>
+                    </div>
+                    <div class="group-selection__column is-hidden" id="foreground-groups-column">
+                        <label class="label group-selection__label" data-role="foreground-label">Text</label>
+                        <div id="foreground-groups" class="group-selection__list"></div>
+                    </div>
+                </div>
+            </section>
+            <section class="options">
+
+                <div class="label">Display options</div>
+                <div class="wcag-options">
+                    <div class="checkbox">
+                        <input type="checkbox" id="aaa" class="checkbox__box" checked />
+                        <label class="checkbox__label" for="aaa">AAA</label>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" id="aa" class="checkbox__box" checked />
+                        <label class="checkbox__label" for="aa">AA</label>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" id="aa18" class="checkbox__box" checked />
+                        <label class="checkbox__label" for="aa18">AA Large</label>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" id="dnp" class="checkbox__box" checked />
+                        <label class="checkbox__label" for="dnp">DNP</label>
+                    </div>
+                </div>
+                <div class="checkbox">
+                    <input type="checkbox" class="checkbox__box" id="full-name" />
+                    <label class="checkbox__label" for="full-name">Show full name</label>
+                </div>
+                <div class="input">
+                    <label for="base-color" class="label">Base color</label>
+                    <input type="text" id="base-color" class="input__field" value="#FFFFFF">
+                </div>
+            </section>
+        </section>
+        <footer>
+            <button id="close" class="button button--secondary">Cancel</button>
+            <button id="generate-grid" class="button button--primary">Generate Matrix</button>
+        </footer>
+    </main>
+
+    <script src="./tmp/scripts.js"></script>
+</body>
+
+</html>

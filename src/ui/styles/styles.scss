@@ -1,0 +1,73 @@
+.wcag-options {
+    display:flex;
+    flex-direction: row;
+}
+footer {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    position: fixed;
+    align-items: center;
+    justify-content: flex-end;
+    bottom: 0;
+    left: 0;
+    padding: 8px;
+    border-top: 1px solid var(--color-border);
+    margin-right: auto;
+    gap: 4px;
+    background: var(--color-bg);
+}
+.main {
+    display: flex;
+    flex-direction: column;
+    gap:12px;
+    
+}
+main {
+    height: calc(100% - 48px);
+    overflow: auto;
+}
+.group-selection {
+    display: flex;
+    gap: 0;
+}
+
+.group-selection__column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.group-selection__list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 160px;
+    overflow: auto;
+    border: 1px solid var(--figma-color-border);
+    padding: 8px 0;
+    margin:0 8px;
+    border-radius: var(--border-radius-med);
+    outline: none;
+}
+
+.group-selection__list .checkbox {
+    width: 100%;
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+div#groups {
+    @extend .group-selection__list;
+}
+div#groups .checkbox {
+    width:100%;
+}
+
+#foreground-groups {
+    @extend .group-selection__list;
+}
+
