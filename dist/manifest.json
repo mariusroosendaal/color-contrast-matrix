@@ -4,11 +4,12 @@
   "api": "1.0.0",
   "main": "code.js",
   "ui": "index.html",
-  "permissions": ["teamlibrary"],
-  "networkAccess": { "allowedDomains": ["none"] },
+  "capabilities": [],
   "enableProposedApi": false,
+  "permissions": ["teamlibrary"],
+  "editorType": ["figma"],
   "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma" 
-  ]
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
 }
