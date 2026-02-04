@@ -1,5 +1,13 @@
 <script>
-  import { Button, Checkbox, Input, Label, Switch, Text } from "figma-ui3-kit-svelte";
+  import { Button, Checkbox, Input, Switch } from "figma-ui3-kit-svelte";
+  import {
+    PluginLayout,
+    Header,
+    FieldGroup,
+    Footer,
+    LoadingState,
+    sendToPlugin,
+  } from "figma-plugin-utils";
 
   let isDistinct = false;
   let availableGroups = {};
@@ -41,31 +49,26 @@
       ? foregroundSelection
       : [...backgroundSelection];
 
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: "generate-grid",
-          array: {
-            aaa: showAAA,
-            aa: showAA,
-            aa18: showAA18,
-            dnp: showDNP,
-            fullName: showFullName,
-            useDistinct: isDistinct,
-            selectedBackgroundGroups,
-            selectedForegroundGroups,
-          },
-          baseColorHex: baseColor,
-        },
+    sendToPlugin("generate-grid", {
+      array: {
+        aaa: showAAA,
+        aa: showAA,
+        aa18: showAA18,
+        dnp: showDNP,
+        fullName: showFullName,
+        useDistinct: isDistinct,
+        selectedBackgroundGroups,
+        selectedForegroundGroups,
       },
-      "*",
-    );
+      baseColorHex: baseColor,
+    });
   }
 
   function handleClose() {
-    parent.postMessage({ pluginMessage: { type: "close" } }, "*");
+    sendToPlugin("close");
   }
 
+  // Custom handler needed - backend sends groups as property, not type
   window.onmessage = (event) => {
     const msg = event.data?.pluginMessage;
     if (!msg) return;
@@ -86,15 +89,16 @@
   };
 </script>
 
-<div class="wrapper">
-  <div class="main">
-    <div class="section">
+<div class="plugin-container">
+  <Header title="Color Contrast Matrix" />
+
+  <PluginLayout>
+    <FieldGroup>
       <Switch bind:checked={isDistinct}>Distinct rows and columns</Switch>
-    </div>
+    </FieldGroup>
 
     <div class="groups-container">
-      <div class="group-column">
-        <Label>{isDistinct ? "Background" : "Background & Text"}</Label>
+      <FieldGroup label={isDistinct ? "Background" : "Background & Text"}>
         {#if hasGroups}
           <div class="checkboxes">
             {#each groupNames as name}
@@ -107,13 +111,12 @@
             {/each}
           </div>
         {:else}
-          <Text variant="body-small" color="secondary">Loading groups...</Text>
+          <LoadingState message="Loading groups..." size="small" />
         {/if}
-      </div>
+      </FieldGroup>
 
       {#if isDistinct}
-        <div class="group-column">
-          <Label>Text</Label>
+        <FieldGroup label="Text">
           {#if hasGroups}
             <div class="checkboxes">
               {#each groupNames as name}
@@ -126,12 +129,11 @@
               {/each}
             </div>
           {/if}
-        </div>
+        </FieldGroup>
       {/if}
     </div>
 
-    <div class="section">
-      <Label>Display options</Label>
+    <FieldGroup label="Display options">
       <div class="display-options">
         <Checkbox bind:checked={showAAA}>AAA</Checkbox>
         <Checkbox bind:checked={showAA}>AA</Checkbox>
@@ -139,58 +141,39 @@
         <Checkbox bind:checked={showDNP}>DNP</Checkbox>
       </div>
       <Checkbox bind:checked={showFullName}>Show full name</Checkbox>
-    </div>
+    </FieldGroup>
 
-    <div class="section">
-      <Label>Base color</Label>
+    <FieldGroup label="Base color">
       <Input bind:value={baseColor} placeholder="#FFFFFF" />
-    </div>
-  </div>
+    </FieldGroup>
+  </PluginLayout>
 
-  <footer>
-    <Button variant="secondary" on:click={handleClose}>Cancel</Button>
-    <Button
-      variant="primary"
-      on:click={handleGenerate}
-      disabled={isGenerating || backgroundSelection.length === 0}
-    >
-      {isGenerating ? "Generating..." : "Generate Matrix"}
-    </Button>
-  </footer>
+  <Footer variant="split">
+    <svelte:fragment slot="left">
+      <Button variant="secondary" on:click={handleClose}>Cancel</Button>
+    </svelte:fragment>
+    <svelte:fragment slot="right">
+      <Button
+        variant="primary"
+        on:click={handleGenerate}
+        disabled={isGenerating || backgroundSelection.length === 0}
+      >
+        {isGenerating ? "Generating..." : "Generate Matrix"}
+      </Button>
+    </svelte:fragment>
+  </Footer>
 </div>
 
 <style>
-  .wrapper {
+  .plugin-container {
     height: 100%;
     display: flex;
     flex-direction: column;
   }
 
-  .main {
-    flex: 1;
-    padding: var(--size-xxsmall);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-xsmall);
-  }
-
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-xxxsmall);
-  }
-
   .groups-container {
     display: flex;
     gap: var(--size-xsmall);
-  }
-
-  .group-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-xxxsmall);
   }
 
   .checkboxes {
@@ -203,13 +186,5 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-xsmall);
-  }
-
-  footer {
-    display: flex;
-    gap: var(--size-xxsmall);
-    padding: var(--size-xxsmall);
-    border-top: 1px solid var(--figma-color-border);
-    justify-content: flex-end;
   }
 </style>
