@@ -158,7 +158,7 @@
         on:click={handleGenerate}
         disabled={isGenerating || backgroundSelection.length === 0}
       >
-        {isGenerating ? "Generating..." : "Generate Matrix"}
+        {isGenerating ? "Generating..." : "Generate matrix"}
       </Button>
     </svelte:fragment>
   </Footer>
