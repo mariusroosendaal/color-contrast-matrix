@@ -137,12 +137,20 @@ class Tile {
     textNode.fills = [{ type: "SOLID", color: textColor }];
   }
 
-  applyContrastLabel() {
-    const bgPaint = this.instance.fills[0] as SolidPaint;
+  applyContrastLabel(): number {
+    const instanceFills = this.instance.fills;
+    if (!instanceFills || instanceFills === figma.mixed || !instanceFills[0]) {
+      return 0;
+    }
+    const bgPaint = instanceFills[0] as SolidPaint;
     const tileText = this.instance.findOne(
       (node) => node.name === "text",
     ) as TextNode;
-    const fgPaint = tileText.fills[0] as SolidPaint;
+    const textFills = tileText.fills;
+    if (!textFills || textFills === figma.mixed || !textFills[0]) {
+      return 0;
+    }
+    const fgPaint = textFills[0] as SolidPaint;
 
     const contrast = this.getContrast(fgPaint, bgPaint, this.baseColor);
     const ratioLabel = this.instance.findOne(
@@ -281,13 +289,11 @@ class Tile {
 class ColorMatrixGenerator {
   backgroundColors: ColorVariable[];
   foregroundColors: ColorVariable[];
-  gridTileComponent: ComponentNode | null;
+  gridTileComponent: ComponentNode | null = null;
 
   constructor() {
     this.backgroundColors = [];
     this.foregroundColors = [];
-    // this.gridTileComponent = await figma.importComponentByKeyAsync('f9ab15001530fa4cc6360b7f1742dc71f16a7add');
-    //this.gridTileComponent = figma.currentPage.findOne(node => node.name === 'gridTile') as ComponentNode;
   }
 
   async getColorVariables(): Promise<ColorVariable[]> {
@@ -299,7 +305,7 @@ class ColorMatrixGenerator {
       for (const variableId of collection.variableIds) {
         const variable = await figma.variables.getVariableByIdAsync(variableId);
 
-        if (variable.resolvedType === "COLOR") {
+        if (variable && variable.resolvedType === "COLOR") {
           colorVariables.push({
             name: variable.name,
             collection: collection.name,
