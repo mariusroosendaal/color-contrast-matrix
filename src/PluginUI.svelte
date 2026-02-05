@@ -80,25 +80,18 @@
 
     if (msg.groups) {
       availableGroups = msg.groups;
-      // Select all by default
-      if (backgroundSelection.length === 0) {
-        backgroundSelection = Object.keys(msg.groups);
-        foregroundSelection = Object.keys(msg.groups);
-      }
     }
   };
 </script>
 
 <div class="plugin-container">
-  <Header title="Color Contrast Matrix" />
-
   <PluginLayout>
     <FieldGroup>
       <Switch bind:checked={isDistinct}>Distinct rows and columns</Switch>
     </FieldGroup>
 
     <div class="groups-container">
-      <FieldGroup label={isDistinct ? "Background" : "Background & Text"}>
+      <FieldGroup label={isDistinct ? "Background" : "Background & Foreground"}>
         {#if hasGroups}
           <div class="checkboxes">
             {#each groupNames as name}
@@ -116,7 +109,7 @@
       </FieldGroup>
 
       {#if isDistinct}
-        <FieldGroup label="Text">
+        <FieldGroup label="Foreground">
           {#if hasGroups}
             <div class="checkboxes">
               {#each groupNames as name}
@@ -173,13 +166,22 @@
 
   .groups-container {
     display: flex;
-    gap: var(--size-xsmall);
+    gap: var(--size-xxsmall);
+  }
+  .groups-container > :global(*) {
+    flex: 1;
+    min-width: 0;
   }
 
   .checkboxes {
     display: flex;
     flex-direction: column;
     gap: var(--size-xxxsmall);
+    border: 1px solid var(--figma-color-border);
+    border-radius: var(--border-radius-medium);
+    padding: var(--size-xxsmall);
+    max-height: 200px;
+    overflow-y: auto;
   }
 
   .display-options {

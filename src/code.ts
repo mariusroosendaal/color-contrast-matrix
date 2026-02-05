@@ -420,10 +420,6 @@ class ColorMatrixGenerator {
     const gridTileComponent = await figma.importComponentByKeyAsync(
       "f9ab15001530fa4cc6360b7f1742dc71f16a7add",
     );
-    // const gridTileComponent = figma.currentPage.findOne(node => node.name === 'gridTile');
-    // const gridHeaderTileComponent = figma.currentPage.findOne(node => node.name === 'gridHeaderTile');
-    // const gridAxisTileComponent = figma.currentPage.findOne(node => node.name === 'gridAxisTile');
-    // const specHeaderTemplate = figma.currentPage.findOne(node => node.name === 'specHeader');
     const matrixFrame = this.createFrame(
       "VERTICAL",
       matrixLabel.toLowerCase(),
