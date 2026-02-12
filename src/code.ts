@@ -1,4 +1,4 @@
-figma.showUI(__html__, { themeColors: true, width: 360, height: 480 });
+figma.showUI(__html__, { themeColors: true, width: 320, height: 400 });
 
 figma.loadFontAsync({ family: "IBM Plex Mono", style: "Regular" });
 figma.loadFontAsync({ family: "Inter", style: "Regular" });
@@ -365,6 +365,7 @@ class ColorMatrixGenerator {
       useDistinct: boolean;
     },
     baseColorHex: string,
+    selectedModes: Array<{ collectionId: string; modeId: string }>,
   ) {
     if (!backgroundGroups.length || !foregroundGroups.length) {
       figma.notify(
@@ -434,6 +435,24 @@ class ColorMatrixGenerator {
       0,
       baseColor,
     );
+
+    // Add matrixFrame to page early so children can resolve variable modes
+    figma.currentPage.appendChild(matrixFrame);
+
+    // Set explicit variable modes on the matrix frame
+    for (const mode of selectedModes) {
+      const collection =
+        await figma.variables.getVariableCollectionByIdAsync(
+          mode.collectionId,
+        );
+      if (collection) {
+        matrixFrame.setExplicitVariableModeForCollection(
+          collection,
+          mode.modeId,
+        );
+      }
+    }
+
     const colorFrame = this.createFrame(
       "VERTICAL",
       "colors",
@@ -447,7 +466,6 @@ class ColorMatrixGenerator {
       const specHeaderCopy = specHeaderTemplate.createInstance();
       specHeaderCopy.layoutAlign = "STRETCH";
 
-      //const specHeaderCopy = specHeaderTemplate.clone() as InstanceNode;
       const headerLabel = specHeaderCopy.findOne(
         (node) => node.name === "title",
       );
@@ -463,14 +481,11 @@ class ColorMatrixGenerator {
       const componentNode = gridTileComponent as ComponentNode;
       const componentHeaderNode = gridHeaderTileComponent as ComponentNode;
       const componentAxisNode = gridAxisTileComponent as ComponentNode;
-      const rowFrames: FrameNode[] = [];
 
       if (
         gridHeaderTileComponent &&
         gridHeaderTileComponent.type === "COMPONENT"
       ) {
-        const axisTileInstance =
-          componentAxisNode.createInstance() as InstanceNode;
         const headerFrame = this.createFrame(
           "HORIZONTAL",
           "header",
@@ -479,12 +494,17 @@ class ColorMatrixGenerator {
           0,
           baseColor,
         );
-        rowFrames.push(headerFrame);
+        colorFrame.appendChild(headerFrame);
+
+        const axisTileInstance =
+          componentAxisNode.createInstance() as InstanceNode;
         headerFrame.appendChild(axisTileInstance);
 
         for (let col = 0; col < this.foregroundColors.length; col++) {
           const headerTileInstance =
             componentHeaderNode.createInstance() as InstanceNode;
+          headerFrame.appendChild(headerTileInstance);
+
           const columnColor = this.foregroundColors[col];
           const headerTile = new Tile(
             headerTileInstance,
@@ -493,9 +513,7 @@ class ColorMatrixGenerator {
             baseColor,
           );
           headerTile.applyColors(array.fullName);
-          headerFrame.appendChild(headerTileInstance);
         }
-        colorFrame.appendChild(headerFrame);
       }
 
       for (let row = 0; row < this.backgroundColors.length; row++) {
@@ -507,10 +525,12 @@ class ColorMatrixGenerator {
           0,
           baseColor,
         );
-        rowFrames.push(rowFrame);
+        colorFrame.appendChild(rowFrame);
 
         const headerRowTileInstance =
           componentHeaderNode.createInstance() as InstanceNode;
+        rowFrame.appendChild(headerRowTileInstance);
+
         const rowColor = this.backgroundColors[row];
         const headerRowTile = new Tile(
           headerRowTileInstance,
@@ -519,10 +539,11 @@ class ColorMatrixGenerator {
           baseColor,
         );
         headerRowTile.applyColors(array.fullName);
-        rowFrame.appendChild(headerRowTileInstance);
 
         for (let col = 0; col < this.foregroundColors.length; col++) {
           const tileInstance = componentNode.createInstance() as InstanceNode;
+          rowFrame.appendChild(tileInstance);
+
           const tile = new Tile(
             tileInstance,
             this.backgroundColors[row],
@@ -531,16 +552,11 @@ class ColorMatrixGenerator {
           );
           tile.applyColors(array.fullName);
           tile.processTile(array);
-          rowFrame.appendChild(tileInstance);
         }
-        colorFrame.appendChild(rowFrame);
       }
-      const nodes = [];
 
-      figma.currentPage.appendChild(matrixFrame);
-      nodes.push(matrixFrame);
-      figma.currentPage.selection = nodes;
-      figma.viewport.scrollAndZoomIntoView(nodes);
+      figma.currentPage.selection = [matrixFrame];
+      figma.viewport.scrollAndZoomIntoView([matrixFrame]);
 
       figma.closePlugin("Matrix generated successfully!");
     } else {
@@ -551,13 +567,64 @@ class ColorMatrixGenerator {
   }
 }
 
+const SETTINGS_KEY = "color-contrast-matrix-settings";
+
+interface PersistedSettings {
+  showAAA?: boolean;
+  showAA?: boolean;
+  showAA18?: boolean;
+  showDNP?: boolean;
+  showFullName?: boolean;
+  baseColor?: string;
+}
+
+function sanitizePersistedSettings(raw: PersistedSettings): PersistedSettings {
+  return {
+    showAAA: typeof raw.showAAA === "boolean" ? raw.showAAA : true,
+    showAA: typeof raw.showAA === "boolean" ? raw.showAA : true,
+    showAA18: typeof raw.showAA18 === "boolean" ? raw.showAA18 : true,
+    showDNP: typeof raw.showDNP === "boolean" ? raw.showDNP : true,
+    showFullName: typeof raw.showFullName === "boolean" ? raw.showFullName : false,
+    baseColor:
+      typeof raw.baseColor === "string" && /^#[0-9A-Fa-f]{6}$/.test(raw.baseColor)
+        ? raw.baseColor
+        : "#FFFFFF",
+  };
+}
+
 // Initialize matrix generator and UI handling
 const generator = new ColorMatrixGenerator();
 
-// Fetch variables and send them to the UI
-generator.getColorVariables().then((variables) => {
+// Fetch variables, mode info, and persisted settings, then send to the UI
+generator.getColorVariables().then(async (variables) => {
   const groups = generator.groupVariablesByPrefix(variables);
-  figma.ui.postMessage({ groups });
+
+  // Collect mode info from collections that have color variables and multiple modes
+  const collections =
+    await figma.variables.getLocalVariableCollectionsAsync();
+  const collectionsWithColorVars = new Set(
+    variables.map((v) => v.collection),
+  );
+
+  const collectionModes = collections
+    .filter(
+      (c) => collectionsWithColorVars.has(c.name) && c.modes.length > 1,
+    )
+    .map((c) => ({
+      collectionId: c.id,
+      collectionName: c.name,
+      defaultModeId: c.defaultModeId,
+      modes: c.modes.map((m) => ({ modeId: m.modeId, name: m.name })),
+    }));
+
+  const storedSettings = await figma.clientStorage
+    .getAsync(SETTINGS_KEY)
+    .catch(() => undefined);
+  const settings = sanitizePersistedSettings(
+    (storedSettings ?? {}) as PersistedSettings,
+  );
+
+  figma.ui.postMessage({ groups, collectionModes, settings });
 });
 
 // Handle UI messages
@@ -573,7 +640,27 @@ figma.ui.onmessage = async (msg) => {
       foregrounds,
       msg.array,
       msg.baseColorHex,
+      msg.selectedModes || [],
     );
+  } else if (msg.type === "persist-settings") {
+    const settings = msg.settings as PersistedSettings;
+    const payload: PersistedSettings = {
+      showAAA: Boolean(settings.showAAA),
+      showAA: Boolean(settings.showAA),
+      showAA18: Boolean(settings.showAA18),
+      showDNP: Boolean(settings.showDNP),
+      showFullName: Boolean(settings.showFullName),
+      baseColor:
+        typeof settings.baseColor === "string" &&
+        /^#[0-9A-Fa-f]{6}$/.test(settings.baseColor)
+          ? settings.baseColor
+          : "#FFFFFF",
+    };
+    try {
+      await figma.clientStorage.setAsync(SETTINGS_KEY, payload);
+    } catch (error) {
+      console.error("Failed to persist plugin settings:", error);
+    }
   } else if (msg.type === "close") {
     figma.closePlugin();
   }
