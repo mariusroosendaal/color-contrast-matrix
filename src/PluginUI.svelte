@@ -9,7 +9,7 @@
     Switch,
   } from "figma-ui3-kit-svelte";
   // @ts-ignore - Direct import until kit exports this icon
-  import IconSettingsSmall from "../../node_modules/figma-ui3-kit-svelte/src/icons/24/icon.24.settings.small.svg";
+  import IconSettingsSmall from "../node_modules/figma-ui3-kit-svelte/src/icons/24/icon.24.settings.small.svg";
   import {
     PluginLayout,
     Header,
@@ -18,7 +18,7 @@
     LoadingState,
     EmptyState,
     sendToPlugin,
-  } from "figma-plugin-utils";
+  } from "figma-plugin-utilities";
 
   let isLoading = true;
   let isDistinct = false;
@@ -316,7 +316,7 @@
     border: 1px solid var(--figma-color-border);
     border-radius: var(--border-radius-medium);
     padding: var(--size-xxsmall);
-    max-height: 200px;
+    height: 160px;
     overflow-y: auto;
   }
 

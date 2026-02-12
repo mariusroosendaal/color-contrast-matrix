@@ -34,3 +34,16 @@ npm install
 npm run dev    # Watch mode
 npm run build  # Production build
 ```
+
+## Publishing
+
+This plugin is maintained in a monorepo but published to its own GitHub repository at [mariusroosendaal/color-contrast-matrix](https://github.com/mariusroosendaal/color-contrast-matrix).
+
+To sync changes from the monorepo to the standalone repo:
+
+```bash
+cd /Users/marius/Sites/figma-plugins/_collection
+./scripts/publish-color-contrast-matrix.sh
+```
+
+This uses `git subtree` to push only this plugin folder to the standalone repository.

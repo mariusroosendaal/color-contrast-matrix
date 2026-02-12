@@ -1,4 +1,4 @@
-figma.showUI(__html__, { themeColors: true, width: 320, height: 400 });
+figma.showUI(__html__, { themeColors: true, width: 320, height: 360 });
 
 figma.loadFontAsync({ family: "IBM Plex Mono", style: "Regular" });
 figma.loadFontAsync({ family: "Inter", style: "Regular" });
